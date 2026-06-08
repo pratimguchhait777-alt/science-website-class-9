@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCIENCE_IX | Neon Nexus</title>
+    <style>
+        :root {
+            --bg-dark: #050a15;
+            --card-bg: rgba(10, 25, 50, 0.6);
+            --neon-blue: #00f0ff;
+            --neon-glow: rgba(0, 240, 255, 0.4);
+            --text-pure: #ffffff;
+            --text-muted: #8fa0c0;
+            --admin-neon: #39ff14;
+            --border-neon: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-pure);
+            overflow-x: hidden;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 240, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.05) 0px, transparent 50%);
+        }
+
+        /* --- SCREENSHOT PROTECTION MASK --- */
+        @media print { body { display: none !important; } }
+        .security-shield {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9999;
+            backdrop-filter: contrast(100.1%) brightness(100%);
+        }
+
+        /* --- DYNAMIC NEON SIGN-IN SCREEN --- */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #02050c;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000;
+            transition: all 0.7s cubic-bezier(0.86, 0, 0.07, 1);
+        }
+
+        .welcome-box {
+            text-align: center; z-index: 10; padding: 60px 50px;
+            border-radius: 24px; background: rgba(5, 15, 35, 0.85);
+            border: var(--border-neon);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            backdrop-filter: blur(20px);
+        }
+
+        .welcome-box h1 { 
+            font-size: 3.8rem; font-weight: 900; margin-bottom: 5px; letter-spacing: 3px;
+            color: var(--text-pure); text-shadow: 0 0 15px var(--neon-glow);
+        }
+        .welcome-box h1 span { color: var(--neon-blue); text-shadow: 0 0 25px var(--neon-blue); }
+        .welcome-box p { color: var(--text-muted); margin-bottom: 40px; font-weight: 600; letter-spacing: 1px; }
+
+        .welcome-box input {
+            padding: 16px 24px; font-size: 1.1rem; border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 30px; background: #030710; color: white;
+            outline: none; text-align: center; width: 300px; transition: all 0.3s;
+            margin-bottom: 25px; box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+        .welcome-box input:focus { border-color: var(--neon-blue); box-shadow: 0 0 20px var(--neon-glow); width: 330px; }
+
+        .welcome-box button {
+            padding: 15px; background: transparent; color: var(--text-pure);
+            border: 2px solid var(--neon-blue); border-radius: 30px; cursor: pointer; font-weight: 700;
+            font-size: 1rem; width: 300px; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .welcome-box button:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 30px var(--neon-blue); transform: translateY(-2px); }
+
+        /* --- GLOBAL HEADER PANELS --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 6%; background: rgba(5, 13, 28, 0.85);
+            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+            backdrop-filter: blur(10px);
+        }
+        .logo { font-size: 2rem; font-weight: 900; letter-spacing: 1px; text-shadow: 0 0 10px var(--neon-glow); }
+        .logo span { color: var(--neon-blue); }
+        .user-stats { display: flex; gap: 15px; align-items: center; }
+        #welcome-user { font-weight: 600; color: var(--text-pure); border: 1px solid rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
+        .xp-badge { background: var(--text-pure); color: #000; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        .admin-badge { background: var(--admin-neon); color: #000; padding: 6px 16px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; display: none; box-shadow: 0 0 15px var(--admin-neon); }
+
+        /* --- CONTROL ROSTER DATABASE --- */
+        #admin-roster-panel {
+            display: none; background: rgba(57, 255, 20, 0.05); border: 1px solid var(--admin-neon);
+            border-radius: 16px; padding: 25px; max-width: 1200px; margin: 30px auto 0 auto;
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.05);
+        }
+        #admin-roster-panel h2 { font-size: 1.3rem; color: var(--admin-neon); margin-bottom: 15px; }
+        .roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .student-profile-card { background: #070f22; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; }
+
+        /* --- HUB CONTENT GRID CONTAINER --- */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .subject-section { margin-bottom: 60px; }
+        
+        .subject-header-container {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;
+        }
+        .subject-title { font-size: 2.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .btn-create-slot {
+            background: transparent; border: 1px dashed var(--neon-blue);
+            color: var(--neon-blue); padding: 10px 20px; border-radius: 30px;
+            cursor: pointer; font-weight: 700; font-size: 0.85rem; display: none;
+            transition: all 0.2s; box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+        .btn-create-slot:hover { background: rgba(0, 240, 255, 0.1); box-shadow: 0 0 15px var(--neon-glow); }
+
+        /* TIERS DOUBLE MATRIX PLACEMENT */
+        .slots-grid { display: grid; grid-template-columns: 1fr; gap: 35px; }
+        .master-slot-card {
+            background: var(--card-bg); border-radius: 20px; padding: 30px;
+            border: var(--border-neon); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+        }
+        .master-slot-card h3 { font-size: 1.5rem; color: var(--text-pure); margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
+        .master-slot-card h3 span { font-size: 0.8rem; background: rgba(0, 240, 255, 0.15); padding: 5px 12px; border-radius: 20px; color: var(--neon-blue); border: 1px solid rgba(0,240,255,0.2); }
+
+        /* Sub-columns layout alignment configuration */
+        .sub-slots-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .inner-bucket {
+            background: rgba(3, 8, 20, 0.8); border-radius: 14px; padding: 22px;
+            border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .inner-bucket h4 { font-size: 1.05rem; color: var(--text-pure); margin-bottom: 15px; border-bottom: 1px solid rgba(0,240,255,0.1); padding-bottom: 8px; }
+
+        /* Render items lists templates */
+        .content-list { list-style: none; margin-bottom: 15px; }
+        .content-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02); padding: 12px 16px; border-radius: 10px;
+            margin-bottom: 10px; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .btn-view {
+            background: transparent; color: var(--text-pure); padding: 6px 16px;
+            border-radius: 6px; cursor: pointer; font-size: 0.8rem; border: 1px solid var(--text-pure);
+            font-weight: 700; transition: all 0.2s;
+        }
+        .btn-view:hover { background: var(--text-pure); color: #000; }
+
+        /* Document Manager Interface Upload blocks */
+        .admin-upload-panel { display: none; margin-top: 10px; }
+        .admin-upload-panel input[type="file"] { display: none; }
+        .upload-label {
+            background: rgba(57, 255, 20, 0.1); color: var(--admin-neon); padding: 8px 14px;
+            border-radius: 8px; display: inline-block; cursor: pointer;
+            font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(57, 255, 20, 0.2);
+        }
+        .upload-label:hover { background: var(--admin-neon); color: #000; }
+
+        /* --- LIGHTNING SHIELD SECURE MODAL --- */
+        #viewer-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 4, 10, 0.98); display: none;
+            justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            width: 94%; height: 86%; background: #030710;
+            border-radius: 16px; overflow: hidden; position: relative; border: var(--border-neon);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+        }
+        .close-modal { position: absolute; top: -35px; right: 0; color: var(--text-muted); font-size: 1rem; cursor: pointer; }
+        .close-modal:hover { color: var(--neon-blue); }
+        #view-frame { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <div class="security-shield"></div>
+
+    <div id="welcome-screen">
+        <div class="welcome-box">
+            <h1>SCIENCE_<span>IX</span></h1>
+            <p>The Future of Learning • Neon Hub</p>
+            <input type="text" id="username-input" placeholder="Enter Username ID" autocomplete="off"><br>
+            <button onclick="entrySetup()">Access Dashboard</button>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">SCIENCE_<span>IX</span></div>
+        <div class="user-stats">
+            <span id="welcome-user">Connecting Profile...</span>
+            <div id="admin-indicator" class="admin-badge">ADMIN CONTROL</div>
+            <div class="xp-badge">✨ <span id="xp-count">0</span> XP</div>
+        </div>
+    </header>
+
+    <div id="admin-roster-panel">
+        <h2>👥 Local Directory Registry (Stored Device Sessions)</h2>
+        <div class="roster-grid" id="roster-grid-target"></div>
+    </div>
+
+    <div class="container">
+
+        <section class="subject-section">
+            <div class="subject-header-container">
+                <h2 class="subject-title" style="color: var(--text-pure); text-shadow: 0 0 15px rgba(255,255,255,0.2);">Physics</h2>
+                <button class="btn-create-slot" id="btn-create-phy" onclick="createNewSlot('phy-slots-target')">+ Add Custom Chapter</button>
+            </div>
+            <div class="slots-grid" id="phy-slots-target"></div>
+        </section>
+
+        <section class="subject-section">
+            <div class="subject-header-container">
+                <h2 class="subject-title" style="color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-glow);">Chemistry</h2>
+                <button class="btn-create-slot" id="btn-create-chem" onclick="createNewSlot('chem-slots-target')">+ Add Custom Chapter</button>
+            </div>
+            <div class="slots-grid" id="chem-slots-target"></div>
+        </section>
+
+        <section class="subject-section">
+            <div class="subject-header-container">
+                <h2 class="subject-title" style="color: var(--text-pure); text-shadow: 0 0 15px rgba(255,255,255,0.2);">Biology</h2>
+                <button class="btn-create-slot" id="btn-create-bio" onclick="createNewSlot('bio-slots-target')">+ Add Custom Chapter</button>
+            </div>
+            <div class="slots-grid" id="bio-slots-target"></div>
+        </section>
+    </div>
+
+    <div id="viewer-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeViewer()">✕ Close Workspace Matrix</span>
+            <iframe id="view-frame" src="" oncontextmenu="return false;"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let profilesDB = JSON.parse(localStorage.getItem('neon_matrix_profiles')) || {};
+        let activeUser = localStorage.getItem('neon_matrix_current_session');
+        let currentXP = 0;
+        let globalSlotCounter = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Setup core base template containers on document ready sequence execution
+            seedInitialEcosystemSlots();
+            
+            if (activeUser) {
+                currentXP = profilesDB[activeUser.toUpperCase()]?.xp || 0;
+                document.getElementById('xp-count').innerText = currentXP;
+                applyIdentityConfig(activeUser);
+                document.getElementById('welcome-screen').style.display = 'none';
+            }
+        });
+
+        function entrySetup() {
+            const inputName = document.getElementById('username-input').value.trim();
+            if (!inputName) { alert("Please type an identity configuration user key!"); return; }
+
+            const keyName = inputName.toUpperCase();
+            activeUser = inputName;
+            localStorage.setItem('neon_matrix_current_session', inputName);
+
+            if (!profilesDB[keyName]) {
+                profilesDB[keyName] = { name: inputName, xp: 0, joined: new Date().toLocaleDateString() };
+                localStorage.setItem('neon_matrix_profiles', JSON.stringify(profilesDB));
+            }
+
+            currentXP = profilesDB[keyName].xp;
+            document.getElementById('xp-count').innerText = currentXP;
+            applyIdentityConfig(inputName);
+
+            const screen = document.getElementById('welcome-screen');
+            screen.style.opacity = '0';
+            setTimeout(() => screen.style.display = 'none', 700);
+        }
+
+        function applyIdentityConfig(username) {
+            document.getElementById('welcome-user').innerText = "⚡ " + username;
+
+            if (username.toUpperCase() === "PRATIM") {
+                document.getElementById('admin-indicator').style.display = 'inline-block';
+                document.getElementById('admin-roster-panel').style.display = 'block';
+                
+                // Unhide structural action triggers
+                document.querySelectorAll('.btn-create-slot').forEach(btn => btn.style.display = 'block');
+                document.querySelectorAll('.admin-upload-panel').forEach(panel => panel.style.display = 'block');
+                
+                renderStudentRoster();
+            }
+        }
+
+        function renderStudentRoster() {
+            const rosterGrid = document.getElementById('roster-grid-target');
+            rosterGrid.innerHTML = ""; 
+            Object.keys(profilesDB).forEach(key => {
+                const profile = profilesDB[key];
+                const card = document.createElement('div');
+                card.className = 'student-profile-card';
+                card.innerHTML = `
+                    <strong style="color: #fff;">${profile.name}</strong>
+                    <span style="color:var(--neon-blue); font-size: 0.9rem; font-weight:bold;">⚡ ${profile.xp} XP</span>
+                `;
+                rosterGrid.appendChild(card);
+            });
+        }
+
+        // --- FIXED DYNAMIC CHAPTER GENERATOR PIPELINE ---
+        function createNewSlot(targetContainerId, optionalTitle = "") {
+            let slotTitle = optionalTitle;
+            if (!slotTitle) {
+                slotTitle = prompt("Provide a chapter module descriptor name:");
+                if (!slotTitle) return;
+            }
+
+            globalSlotCounter++;
+            const targetDiv = document.getElementById(targetContainerId);
+            const masterSlot = document.createElement('div');
+            masterSlot.className = 'master-slot-card';
+            masterSlot.id = `master-slot-${globalSlotCounter}`;
+
+            const isAdminMode = (activeUser && activeUser.toUpperCase() === "PRATIM") ? 'style="display:block;"' : '';
+
+            masterSlot.innerHTML = `
+                <h3>${slotTitle} <span>Active Module Grid</span></h3>
+                <div class="sub-slots-container">
+                    <div class="inner-bucket">
+                        <div>
+                            <h4>📚 Class Notes (PDF)</h4>
+                            <ul class="content-list" id="list-notes-${globalSlotCounter}"></ul>
+                        </div>
+                        <div class="admin-upload-panel" ${isAdminMode}>
+                            <label class="upload-label">
+                                <input type="file" accept=".pdf" onchange="processFileUpload(this, 'list-notes-${globalSlotCounter}', 'pdf')">+ Load PDF
+                            </label>
+                        </div>
+                    </div>
+                    <div class="inner-bucket">
+                        <div>
+                            <h4>📝 Daily Practice Papers (DPP)</h4>
+                            <ul class="content-list" id="list-dpps-${globalSlotCounter}"></ul>
+                        </div>
+                        <div class="admin-upload-panel" ${isAdminMode}>
+                            <label class="upload-label">
+                                <input type="file" accept=".html" onchange="processFileUpload(this, 'list-dpps-${globalSlotCounter}', 'html')">+ Load HTML DPP
+                            </label>
+                        </div>
+                    </div>
+                    <div class="inner-bucket">
+                        <div>
+                            <h4>🏆 Monthly Tests</h4>
+                            <ul class="content-list" id="list-tests-${globalSlotCounter}"></ul>
+                        </div>
+                        <div class="admin-upload-panel" ${isAdminMode}>
+                            <label class="upload-label">
+                                <input type="file" accept=".html" onchange="processFileUpload(this, 'list-tests-${globalSlotCounter}', 'html')">+ Load HTML Test
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            targetDiv.appendChild(masterSlot);
+        }
+
+        function processFileUpload(inputElement, targetListId, fileType) {
+            const file = inputElement.files[0];
+            if (!file) return;
+
+            const listContainer = document.getElementById(targetListId);
+            const generatedBlobUrl = URL.createObjectURL(file);
+            const rowItem = document.createElement('li');
+            rowItem.className = 'content-item';
+
+            const buttonText = (fileType === 'pdf') ? 'Open View' : 'Begin Action';
+            const awardsXP = (fileType === 'html');
+
+            rowItem.innerHTML = `
+                <span>${file.name}</span>
+                <button class="btn-view" onclick="launchSecureViewer('${generatedBlobUrl}', ${awardsXP})">${buttonText}</button>
+            `;
+            listContainer.appendChild(rowItem);
+            inputElement.value = ""; 
+        }
+
+        function launchSecureViewer(url, givesXP) {
+            const modal = document.getElementById('viewer-modal');
+            const frame = document.getElementById('view-frame');
+            frame.src = url + (url.endsWith('.pdf') ? '#toolbar=0&navpanes=0' : '');
+            modal.style.display = 'flex';
+
+            if (givesXP && activeUser && activeUser.toUpperCase() !== "PRATIM") {
+                currentXP += 10;
+                document.getElementById('xp-count').innerText = currentXP;
+                profilesDB[activeUser.toUpperCase()].xp = currentXP;
+                localStorage.setItem('neon_matrix_profiles', JSON.stringify(profilesDB));
+            }
+        }
+
+        function closeViewer() {
+            document.getElementById('viewer-modal').style.display = 'none';
+            document.getElementById('view-frame').src = "";
+        }
+
+        function seedInitialEcosystemSlots() {
+            createNewSlot('phy-slots-target', 'Chapter 1: Motion Concepts');
+            createNewSlot('chem-slots-target', 'Chapter 1: Atomic Elements Matrix');
+            createNewSlot('bio-slots-target', 'Chapter 1: Molecular Systems Architecture');
+        }
+
+        // Context structural hotkey lock routines
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && (e.key === 'u' || e.key === 'p' || e.key === 's'))) {
+                e.preventDefault(); return false;
+            }
+        });
+    </script>
+</body>
+</html>
